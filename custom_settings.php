@@ -77,6 +77,7 @@ if ($mform->is_cancelled()) {
         'nameweight' => floatval($fromform->name_weight),
         'introweight' => floatval($fromform->intro_weight),
         'sentenceweight' => floatval($fromform->sentence_weight),
+        'language' => $fromform->language,
     );
 
     // Insert/update custom settings.
@@ -91,7 +92,7 @@ if ($mform->is_cancelled()) {
     if ($fromform->reset_errors == 'yes') {
         $params = array(
             'courseid' => $course->id,
-            'value' => 0.0
+            'value' => -1
         );
         $DB->delete_records('block_lord_comparisons', $params);
     }
@@ -111,24 +112,35 @@ if ($mform->is_cancelled()) {
 
     // Remove a stop word from the dictionary.
     if ($fromform->stopwords) {
-        $DB->delete_records('block_lord_dictionary', ['word' => $fromform->stopwords]);
+        $DB->delete_records('block_lord_dictionary', [
+            'word' => $fromform->stopwords,
+            'language' => $fromform->language
+        ]);
     }
 
     // Add a stop word to the dictionary.
     if ($fromform->add_word) {
-        $word = strtolower($fromform->add_word);
+        $word = strtolower(trim($fromform->add_word));
 
         // If word is already in dictionary, change status.
-        $record = $DB->get_record('block_lord_dictionary', ['word' => $word]);
+        $record = $DB->get_record('block_lord_dictionary', [
+            'word' => $word,
+            'language' => $fromform->language
+        ]);
         if ($record) {
             $DB->update_record('block_lord_dictionary', array(
                 'id' => $record->id,
                 'word' => $record->word,
-                'status' => 2
+                'status' => 2,
+                'language' => $fromform->language
             ));
 
         } else { // Insert the new word.
-            $DB->insert_record('block_lord_dictionary', ['word' => $word, 'status' => 2]);
+            $DB->insert_record('block_lord_dictionary', [
+                'word' => $word,
+                'status' => 2,
+                'language' => $fromform->language
+            ]);
         }
     }
 

@@ -124,7 +124,7 @@ function block_lord_get_progress(&$course) {
 
     foreach ($records as $record) {
 
-        if ($record->value != '' && $record->value == 0.0) {
+        if ($record->value != '' && $record->value == -1) {
             $errors++;
         }
 
@@ -163,13 +163,16 @@ function block_lord_get_contents(&$course) {
 
     $dictionary = block_lord_get_dictionary();
 
+    $record = $DB->get_record('block_lord_max_words', ['courseid' => $course->id]);
+    $language = isset($record->language) ? $record->language : 'en';
+
     // Get the module names and introductions.
     $records = $DB->get_records('block_lord_modules', ['courseid' => $course->id]);
     $names = [];
     foreach ($records as $record) {
 
         // Split intro into sentences.
-        $split = block_lord_split_paragraph($record->intro);
+        $split = block_lord_split_paragraph($record->intro, $language);
         $intros = [];
         foreach ($split as $intro) {
             $intros[] = block_lord_clean_sentence($intro, $dictionary);
@@ -213,7 +216,7 @@ function block_lord_get_contents(&$course) {
     foreach ($paragraphs as $module => $paras) {
         $sentences[$module] = [];
         foreach ($paras as $para) {
-            $sents = block_lord_split_paragraph($para);
+            $sents = block_lord_split_paragraph($para, $language);
             $ss = [];
             foreach ($sents as $sent) {
                 $ss[] = block_lord_clean_sentence($sent, $dictionary);
@@ -234,11 +237,13 @@ function block_lord_get_contents(&$course) {
  * https://stackoverflow.com/questions/10494176/explode-a-paragraph-into-sentences-in-php.
  *
  * @param string $paragraph The paragraph to split.
+ * @param string $language The language for regex selection.
  * @return array
  */
-function block_lord_split_paragraph(&$paragraph) {
+function block_lord_split_paragraph(&$paragraph, $language) {
+    global $DB;
 
-    $regex = '/(?<!Mr.|Mrs.|Ms.|Mx.|Dr.|Prof.|Pr.|Br.|Sr.|Fr.|Rev.)(?<=[.?!;])\s+(?=[A-Z])/';
+    $regex = $language == 'en' ? '/(?<!Mr.|Mrs.|Ms.|Mx.|Dr.|Prof.|Pr.|Br.|Sr.|Fr.|Rev.)(?<=[.?!;])\s+(?=[A-Z])/' : '(\?|\.|!|।)';
     $sentences = preg_split($regex, $paragraph, -1, PREG_SPLIT_NO_EMPTY);
 
     return $sentences;
@@ -451,6 +456,7 @@ class block_lord_reset_form extends moodleform {
             $nameweight = $record->nameweight;
             $introweight = $record->introweight;
             $sentenceweight = $record->sentenceweight;
+            $language = isset($record->language) ? $record->language : 'en';
 
         } else { // Defaults.
             $started = 0;
@@ -460,6 +466,7 @@ class block_lord_reset_form extends moodleform {
             $nameweight = 1.0;
             $introweight = 1.0;
             $sentenceweight = 1.0;
+            $language = 'en';
         }
 
         $mform = &$this->_form;
@@ -521,6 +528,20 @@ class block_lord_reset_form extends moodleform {
             'regex', '/^[0-9]?\.?[0-9]{0,2}$/', 'client', true);
         $mform->setDefault('sentence_weight', $sentenceweight);
 
+        // Languages select menu.
+        $mform->addElement('header', 'config_header', get_string('languageheader', 'block_lord'));
+
+        $json = json_decode(file_get_contents('https://ws-nlp.vipresearch.ca/bridge/language_list.php'));
+        $langs = [];
+        foreach ($json as $k => $v) {
+            $langs[$k] = $v;
+            if ($language == $k) {
+                $language = $k;
+            }
+        }
+        $mform->addElement('select', 'language', get_string('languages', 'block_lord'), $langs);
+        $mform->getElement('language')->setSelected($language);
+
         $mform->addElement('header', 'config_header', get_string('resetheader2', 'block_lord'));
 
         // Yes/No select option for resetting comparison errors.
@@ -539,7 +560,7 @@ class block_lord_reset_form extends moodleform {
         $mform->addElement('header', 'config_header', get_string('stopwordsheader', 'block_lord'));
 
         // Get the current stop words and add to form.
-        $records = $DB->get_records('block_lord_dictionary', ['status' => 2], 'word');
+        $records = $DB->get_records('block_lord_dictionary', ['status' => 2], 'language, word');
         $options = [null];
         foreach ($records as $record) {
             $options[$record->word] = $record->word;
@@ -553,8 +574,6 @@ class block_lord_reset_form extends moodleform {
         // Text entry for adding a new stop word.
         $mform->addElement('text', 'add_word', get_string('addstopword', 'block_lord'));
         $mform->setType('add_word', PARAM_RAW);
-        $mform->addRule('add_word', get_string('formerror3', 'block_lord'),
-            'regex', '/^[a-zA-z]+$/', 'client', true);
 
         $this->add_action_buttons();
     }

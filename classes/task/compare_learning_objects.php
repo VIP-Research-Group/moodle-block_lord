@@ -84,6 +84,12 @@ class compare_learning_objects extends \core\task\scheduled_task {
     private $dictionary;
 
     /**
+     * The language to use.
+     * @var string $language
+     */
+    private $language;
+
+    /**
      * Return the task's name as shown in admin screens.
      *
      * @return string
@@ -105,13 +111,7 @@ class compare_learning_objects extends \core\task\scheduled_task {
             return;
         }
 
-        // Build the Wordnet dictionary from DB records.
-        $this->dictionary = [];
-        $words = $DB->get_records('block_lord_dictionary');
-
-        foreach ($words as $word) {
-            $this->dictionary[$word->word] = $word->status;
-        }
+        $alldictionaries = [];
 
         // Process each course where this block is installed.
         $courses = $this->get_courses();
@@ -121,6 +121,19 @@ class compare_learning_objects extends \core\task\scheduled_task {
 
             // Get custom parameters or set defaults.
             $record = $DB->get_record('block_lord_max_words', ['courseid' => $course->id]);
+            $language = $record && isset($record->language) ? $record->language : 'en';
+
+            if (!isset($alldictionaries[$language])) {
+                $alldictionaries[$language] = [];
+                $words = $DB->get_records('block_lord_dictionary', ['language' => $language]);
+
+                foreach ($words as $word) {
+                    $alldictionaries[$language][$word->word] = $word->status;
+                }
+            }
+            $this->dictionary = $alldictionaries[$language];
+            $this->language = $language;
+            self::dbug('DICTIONARY IS: '.$language.' '.count($this->dictionary));
 
             if ($record) {
                 if ($record->dodiscovery == 0) {
@@ -130,6 +143,7 @@ class compare_learning_objects extends \core\task\scheduled_task {
                 $this->maxlength = $record->maxlength;
                 $this->maxsentence = $record->maxsentence;
                 $this->maxparagraph = $record->maxparas;
+
             } else {
                 self::dbug('Learning object relation discovery process is turned off for this course.');
                 continue;
@@ -414,8 +428,8 @@ class compare_learning_objects extends \core\task\scheduled_task {
         }
 
         // Compare the introductions of the modules.
-        $keyintrosent = block_lord_split_paragraph($data[$record->module1]['intro']);
-        $targetintrosent = block_lord_split_paragraph($data[$record->module2]['intro']);
+        $keyintrosent = block_lord_split_paragraph($data[$record->module1]['intro'], $this->language);
+        $targetintrosent = block_lord_split_paragraph($data[$record->module2]['intro'], $this->language);
         $params = [];
         $didcomparison = false;
 
@@ -461,14 +475,14 @@ class compare_learning_objects extends \core\task\scheduled_task {
         $params = [];
         for ($p0 = 0; $p0 < $this->maxparagraph; $p0++) {
             if (isset($data[$record->module1]['paras'][$p0])) {
-                $keyss = block_lord_split_paragraph($data[$record->module1]['paras'][$p0]);
+                $keyss = block_lord_split_paragraph($data[$record->module1]['paras'][$p0], $this->language);
             } else {
                 break;
             }
 
             for ($p1 = 0; $p1 < $this->maxparagraph; $p1++) {
                 if (isset($data[$record->module2]['paras'][$p1])) {
-                    $targetss = block_lord_split_paragraph($data[$record->module2]['paras'][$p1]);
+                    $targetss = block_lord_split_paragraph($data[$record->module2]['paras'][$p1], $this->language);
                 } else {
                     break;
                 }
@@ -927,8 +941,8 @@ class compare_learning_objects extends \core\task\scheduled_task {
         $DB->update_record('block_lord_comparisons', $params);
 
         // Compare the introductions of the modules.
-        $keyintrosent = block_lord_split_paragraph($key->intro);
-        $targetintrosent = block_lord_split_paragraph($target->intro);
+        $keyintrosent = block_lord_split_paragraph($key->intro, $this->language);
+        $targetintrosent = block_lord_split_paragraph($target->intro, $this->language);
         $params = [];
 
         for ($ks = 0; $ks < $this->maxsentence; $ks++) {
@@ -966,14 +980,14 @@ class compare_learning_objects extends \core\task\scheduled_task {
         $params = [];
         for ($p1 = 0; $p1 < $this->maxparagraph; $p1++) {
             if (isset($keyparas[$p1])) {
-                $keyss = block_lord_split_paragraph($keyparas[$p1]);
+                $keyss = block_lord_split_paragraph($keyparas[$p1], $this->language);
             } else {
                 break;
             }
 
             for ($p2 = 0; $p2 < $this->maxparagraph; $p2++) {
                 if (isset($targetparas[$p2])) {
-                    $targetss = block_lord_split_paragraph($targetparas[$p2]);
+                    $targetss = block_lord_split_paragraph($targetparas[$p2], $this->language);
                 } else {
                     break;
                 }
@@ -1020,6 +1034,7 @@ class compare_learning_objects extends \core\task\scheduled_task {
      * @return array
      */
     private function call_bridge(&$key, &$target) {
+        global $DB;
 
         // Sanity check. Return non-zero value to avoid persistent errors.
         if (strlen($key) == 0 || strlen($target) == 0) {
@@ -1028,9 +1043,11 @@ class compare_learning_objects extends \core\task\scheduled_task {
 
         // The outgoing JSON data.
         $json = array(
+            'language' => $this->language,
             'value'  => 1,
             'key'    => $this->restrict_sentence_length($key),
-            'target' => $this->restrict_sentence_length($target)
+            'target' => $this->restrict_sentence_length($target),
+            'method' => 'old',
         );
         $json = json_encode($json);
 
@@ -1040,7 +1057,7 @@ class compare_learning_objects extends \core\task\scheduled_task {
                 'method'  => 'POST',
                 'header'  => 'Content-Type: application/json',
                 'content' => $json,
-                'timeout' => 125 // Bridge times out at 120.
+                'timeout' => 300
             ));
 
         self::dbug('SENT TO BRIDGE SERVICE:');
@@ -1054,7 +1071,7 @@ class compare_learning_objects extends \core\task\scheduled_task {
         // Handle connection timeout.
         if ($contents === false) {
             self::dbug('ERROR: Connection timed out.');
-            return [0.0, ''];
+            return [-1, ''];
 
         } else {
 
@@ -1064,7 +1081,7 @@ class compare_learning_objects extends \core\task\scheduled_task {
             // Handle successful calculation.
             if (isset($decoded->similarity)) {
                 self::dbug("SIMILARITY: " . $decoded->similarity);
-                return [$decoded->similarity, json_encode($decoded->matrix)];
+                return [$decoded->similarity, json_encode($decoded->matrices)];
 
             } else {
                 self::dbug('ERROR: Similarity calculation timed out.');
@@ -1827,14 +1844,16 @@ class compare_learning_objects extends \core\task\scheduled_task {
                     $cleaned .= $word . ' ';
                     $params[] = (object) array(
                         'word' => $word,
-                        'status' => 0
+                        'status' => 0,
+                        'language' => $this->language
                     );
 
                 } else { // Not in Wordnet.
                     $this->dictionary[$word] = 1;
                     $params[] = (object) array(
                         'word' => $word,
-                        'status' => 1
+                        'status' => 1,
+                        'language' => $this->language
                     );
                 }
             }

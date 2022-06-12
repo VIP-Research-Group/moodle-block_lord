@@ -23,8 +23,6 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The upgrade function.
  *
@@ -251,6 +249,36 @@ function xmldb_block_lord_upgrade($oldversion) {
 
         // Lord savepoint reached.
         upgrade_block_savepoint(true, 2020090600, 'lord');
+    }
+
+    if ($oldversion < 2022051800) {
+
+        // Define field language to be added to block_lord_max_words.
+        $table = new xmldb_table('block_lord_max_words');
+        $field = new xmldb_field('language', XMLDB_TYPE_CHAR, '2', null, XMLDB_NOTNULL, null, 'en', 'sentenceweight');
+
+        // Conditionally launch add field language.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Lord savepoint reached.
+        upgrade_block_savepoint(true, 2022051800, 'lord');
+    }
+
+    if ($oldversion < 2022051900) {
+
+        // Define field language to be added to block_lord_dictionary.
+        $table = new xmldb_table('block_lord_dictionary');
+        $field = new xmldb_field('language', XMLDB_TYPE_CHAR, '2', null, XMLDB_NOTNULL, null, 'en', 'status');
+
+        // Conditionally launch add field language.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Lord savepoint reached.
+        upgrade_block_savepoint(true, 2022051900, 'lord');
     }
 
     return true;

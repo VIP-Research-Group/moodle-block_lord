@@ -25,6 +25,8 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/* eslint max-depth: ["warn", 6] */
+
 (function(factory) {
     if (typeof define === "function" && define.amd) {
         // AMD. Register as an anonymous module.
@@ -1565,7 +1567,8 @@
                 // The matrix similarity values.
                 mr.forEach(function(mc) {
                     cell = row.insertCell();
-                    text = document.createTextNode(mc.toFixed(6));
+                    text = mc ? mc.toFixed(6) : mc;
+                    text = document.createTextNode(text);
                     cell.appendChild(text);
                 });
             });

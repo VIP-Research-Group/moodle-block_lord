@@ -1,5 +1,7 @@
 # Learning Object Relation Discovery (LORD) #
 
+[![Moodle Plugin CI](https://github.com/VIP-Research-Group/moodle-block_lord/workflows/Moodle%20Plugin%20CI/badge.svg?branch=master)](https://github.com/VIP-Research-Group/moodle-block_lord/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3Amaster)
+
 This plugin determines the similarity between all the learning activities in a
 course and uses the similarity to configure a network graph of the activities.
 
