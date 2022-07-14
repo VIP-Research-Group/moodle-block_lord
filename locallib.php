@@ -443,7 +443,9 @@ class block_lord_reset_form extends moodleform {
      * Function to make the form.
      */
     public function definition() {
-        global $DB, $COURSE;
+        global $DB, $COURSE, $CFG;
+
+        require_once($CFG->libdir . '/filelib.php');
 
         // Get custom settings, if exist.
         $record = $DB->get_record('block_lord_max_words', ['courseid' => $COURSE->id]);
@@ -531,7 +533,10 @@ class block_lord_reset_form extends moodleform {
         // Languages select menu.
         $mform->addElement('header', 'config_header', get_string('languageheader', 'block_lord'));
 
-        $json = json_decode(file_get_contents('https://ws-nlp.vipresearch.ca/bridge/language_list.php'));
+        $url = 'https://ws-nlp.vipresearch.ca/bridge/language_list.php';
+        $contents = download_file_content($url);
+        $json = json_decode($contents);
+
         $langs = [];
         foreach ($json as $k => $v) {
             $langs[$k] = $v;

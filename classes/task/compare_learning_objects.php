@@ -1034,12 +1034,14 @@ class compare_learning_objects extends \core\task\scheduled_task {
      * @return array
      */
     private function call_bridge(&$key, &$target) {
-        global $DB;
+        global $DB, $CFG;
 
         // Sanity check. Return non-zero value to avoid persistent errors.
         if (strlen($key) == 0 || strlen($target) == 0) {
             return [-0.000001, ''];
         }
+
+        require_once($CFG->libdir . '/filelib.php');
 
         // The outgoing JSON data.
         $json = array(
@@ -1051,22 +1053,13 @@ class compare_learning_objects extends \core\task\scheduled_task {
         );
         $json = json_encode($json);
 
-        // Create stream context.
-        $context = array(
-            'http' => array(
-                'method'  => 'POST',
-                'header'  => 'Content-Type: application/json',
-                'content' => $json,
-                'timeout' => 300
-            ));
-
         self::dbug('SENT TO BRIDGE SERVICE:');
         self::dbug($json);
         self::dbug('RECEIVED FROM BRIDGE SERVICE:');
 
-        // Call the bridge service and parse similarity from the result.
-        $context = stream_context_create($context);
-        $contents = file_get_contents('https://ws-nlp.vipresearch.ca/bridge/', false, $context);
+        $url = 'https://ws-nlp.vipresearch.ca/bridge/';
+        $headers = ['Content-Type' => 'application/json'];
+        $contents = download_file_content($url, $headers, $json, false, 300);
 
         // Handle connection timeout.
         if ($contents === false) {
@@ -1170,7 +1163,8 @@ class compare_learning_objects extends \core\task\scheduled_task {
 
         } else {
             // Convert the remote URL file to text.
-            $contents = file_get_contents($url->externalurl);
+            require_once($CFG->libdir . '/filelib.php');
+            $contents = download_file_content($url->externalurl);
             $context = \context_module::instance($cm->id);
 
             $fileinfo = array(
