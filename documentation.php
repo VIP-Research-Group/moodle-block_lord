@@ -61,6 +61,10 @@ echo html_writer::tag('a', get_string('docs:settings', 'block_lord'), array(
     'href' => new moodle_url('/blocks/lord/documentation.php#settings', $cid)));
 echo html_writer::empty_tag('br');
 
+echo html_writer::tag('a', get_string('docs:publications', 'block_lord'), array(
+    'href' => new moodle_url('/blocks/lord/documentation.php#pubs', $cid)));
+echo html_writer::empty_tag('br');
+
 echo html_writer::tag('a', get_string('docs:issues', 'block_lord'), array(
     'href' => 'https://github.com/VIP-Research-Group/moodle-block_lord/issues'));
 echo html_writer::empty_tag('br');
@@ -100,5 +104,14 @@ echo html_writer::empty_tag('br');
 echo html_writer::div(get_string('docs:settings:desc5', 'block_lord'));
 echo html_writer::empty_tag('br');
 echo html_writer::empty_tag('br');
+
+// Publications.
+$pad = ['style' => 'padding-left: 22px;'];
+echo html_writer::div(get_string('docs:publications', 'block_lord'), 'bigger', array('id' => 'pubs'));
+echo html_writer::empty_tag('br');
+echo html_writer::start_tag('dl');
+echo html_writer::tag('dt', '1.');
+echo html_writer::tag('dd', get_string('docs:pubs1', 'block_lord'), $pad);
+echo html_writer::end_tag('dl');
 
 echo $OUTPUT->footer();

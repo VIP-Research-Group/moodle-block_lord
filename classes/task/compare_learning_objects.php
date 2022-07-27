@@ -1050,6 +1050,7 @@ class compare_learning_objects extends \core\task\scheduled_task {
             'key'    => $this->restrict_sentence_length($key),
             'target' => $this->restrict_sentence_length($target),
             'method' => 'old',
+            'email'  => 'lord@vipresearch.ca',
         );
         $json = json_encode($json);
 

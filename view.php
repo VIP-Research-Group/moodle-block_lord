@@ -88,7 +88,7 @@ $PAGE->requires->string_for_js('sentscost', 'block_lord');
 $PAGE->requires->string_for_js('runphysics', 'block_lord');
 
 // Finish setting up page.
-$PAGE->set_pagelayout('standard');
+$PAGE->set_pagelayout('base');
 $PAGE->set_heading($course->fullname);
 
 // Output page.
