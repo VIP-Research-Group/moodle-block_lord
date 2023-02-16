@@ -90,6 +90,24 @@ class compare_learning_objects extends \core\task\scheduled_task {
     private $language;
 
     /**
+     * Whether or not to use maximum bipartite matching.
+     * @var string $maxbpm
+     */
+    private $maxbpm;
+
+    /**
+     * Whether or not to use N-gram POS service.
+     * @var string $ngrampos
+     */
+    private $ngrampos;
+
+    /**
+     * Wether or not to use canonical method.
+     * @var string $canonical
+     */
+    private $canonical;
+
+    /**
      * Return the task's name as shown in admin screens.
      *
      * @return string
@@ -121,7 +139,17 @@ class compare_learning_objects extends \core\task\scheduled_task {
 
             // Get custom parameters or set defaults.
             $record = $DB->get_record('block_lord_max_words', ['courseid' => $course->id]);
-            $language = $record && isset($record->language) ? $record->language : 'en';
+            if ($record) {
+                if ($record->dodiscovery == 0) {
+                    self::dbug('Learning object relation discovery process is turned off for this course.');
+                    continue;
+                }
+            } else {
+                self::dbug('Learning object relation discovery process is turned off for this course.');
+                continue;
+            }
+
+            $language = $record->language;
 
             if (!isset($alldictionaries[$language])) {
                 $alldictionaries[$language] = [];
@@ -132,22 +160,14 @@ class compare_learning_objects extends \core\task\scheduled_task {
                 }
             }
             $this->dictionary = $alldictionaries[$language];
+            $this->maxlength = $record->maxlength;
+            $this->maxsentence = $record->maxsentence;
+            $this->maxparagraph = $record->maxparas;
             $this->language = $language;
-            self::dbug('DICTIONARY IS: '.$language.' '.count($this->dictionary));
-
-            if ($record) {
-                if ($record->dodiscovery == 0) {
-                    self::dbug('Learning object relation discovery process is turned off for this course.');
-                    continue;
-                }
-                $this->maxlength = $record->maxlength;
-                $this->maxsentence = $record->maxsentence;
-                $this->maxparagraph = $record->maxparas;
-
-            } else {
-                self::dbug('Learning object relation discovery process is turned off for this course.');
-                continue;
-            }
+            $this->maxbpm = $record->maxbpm;
+            $this->ngrampos = $record->ngram_pos;
+            $this->canonical = $record->canonical;
+            self::dbug('DICTIONARY IS: '.$this->language.' '.count($this->dictionary));
 
             // Get learning activity module records.
             $records = $DB->get_records('block_lord_modules', ['courseid' => $course->id]);
@@ -278,7 +298,7 @@ class compare_learning_objects extends \core\task\scheduled_task {
                 foreach ($data['paragraphs'] as $para) {
                     $paragraphs[] = (object) array(
                         'courseid' => $course->id,
-                        'module'   => $id,
+                        'module' => $id,
                         'paragraph' => $n++,
                         'content' => $para
                     );
@@ -288,9 +308,9 @@ class compare_learning_objects extends \core\task\scheduled_task {
             // ... And the module's name and intro.
             $contents[] = (object) array(
                 'courseid' => $course->id,
-                'module'   => $id,
-                'name'     => $data['name'],
-                'intro'    => $data['intro']
+                'module' => $id,
+                'name' => $data['name'],
+                'intro' => $data['intro']
             );
 
             // Determine which modules need to be compared.
@@ -311,8 +331,8 @@ class compare_learning_objects extends \core\task\scheduled_task {
                 // The comparison data, less the actual comparison value.
                 $comparisons[] = (object) array(
                     'courseid' => $course->id,
-                    'module1'  => $k1,
-                    'module2'  => $k2
+                    'module1' => $k1,
+                    'module2' => $k2
                 );
             }
         }
@@ -416,13 +436,13 @@ class compare_learning_objects extends \core\task\scheduled_task {
             list($similarity, $matrix) = $this->call_bridge($keyname, $targetname);
 
             $params = array(
-                'id'       => $record->id,
+                'id' => $record->id,
                 'courseid' => $record->courseid,
-                'module1'  => $record->module1,
-                'module2'  => $record->module2,
+                'module1' => $record->module1,
+                'module2' => $record->module2,
                 'compared' => 'name',
-                'value'    => $similarity,
-                'matrix'   => $matrix
+                'value' => $similarity,
+                'matrix' => $matrix
             );
             $DB->update_record('block_lord_comparisons', $params);
         }
@@ -456,11 +476,11 @@ class compare_learning_objects extends \core\task\scheduled_task {
 
                     $params[] = (object) array(
                         'courseid' => $record->courseid,
-                        'module1'  => $record->module1,
-                        'module2'  => $record->module2,
+                        'module1' => $record->module1,
+                        'module2' => $record->module2,
                         'compared' => 'intro'.$ks.'x'.$ts,
-                        'value'    => $similarity,
-                        'matrix'   => $matrix
+                        'value' => $similarity,
+                        'matrix' => $matrix
                     );
 
                     $didcomparison = true;
@@ -510,11 +530,11 @@ class compare_learning_objects extends \core\task\scheduled_task {
 
                             $params[] = (object) array(
                                 'courseid' => $record->courseid,
-                                'module1'  => $record->module1,
-                                'module2'  => $record->module2,
+                                'module1' => $record->module1,
+                                'module2' => $record->module2,
                                 'compared' => 'P'.$p0.'S'.$s0.'P'.$p1.'S'.$s1,
-                                'value'    => $similarity,
-                                'matrix'   => $matrix
+                                'value' => $similarity,
+                                'matrix' => $matrix
                             );
 
                             $didcomparison = true;
@@ -575,8 +595,8 @@ class compare_learning_objects extends \core\task\scheduled_task {
                     self::dbug('Adding back missing comparison '.$k1.' '.$k2);
                     $comparisons[] = (object) array(
                         'courseid' => $course->id,
-                        'module1'  => $k1,
-                        'module2'  => $k2
+                        'module1' => $k1,
+                        'module2' => $k2
                     );
                 }
             }
@@ -746,7 +766,7 @@ class compare_learning_objects extends \core\task\scheduled_task {
                 foreach ($mod1['paragraphs'] as $para) {
                     $paragraphs[] = (object) array(
                         'courseid' => $course->id,
-                        'module'   => $key1,
+                        'module' => $key1,
                         'paragraph' => $n++,
                         'content' => $para
                     );
@@ -756,9 +776,9 @@ class compare_learning_objects extends \core\task\scheduled_task {
             // ... And the module's name and intro.
             $contents[] = (object) array(
                 'courseid' => $course->id,
-                'module'   => $key1,
-                'name'     => $mod1['name'],
-                'intro'    => $mod1['intro']
+                'module' => $key1,
+                'name' => $mod1['name'],
+                'intro' => $mod1['intro']
             );
 
             // Determine which modules need to be compared.
@@ -788,8 +808,8 @@ class compare_learning_objects extends \core\task\scheduled_task {
                 // The comparison data, less the actual comparison value.
                 $comparisons[] = (object) array(
                     'courseid' => $course->id,
-                    'module1'  => $k1,
-                    'module2'  => $k2
+                    'module1' => $k1,
+                    'module2' => $k2
                 );
             }
             unset($key2);
@@ -878,8 +898,8 @@ class compare_learning_objects extends \core\task\scheduled_task {
                 // The comparison data, less the actual comparison value.
                 $comparisons[] = (object) array(
                     'courseid' => $course->id,
-                    'module1'  => $k1,
-                    'module2'  => $k2
+                    'module1' => $k1,
+                    'module2' => $k2
                 );
             }
         }
@@ -901,7 +921,7 @@ class compare_learning_objects extends \core\task\scheduled_task {
         // Get the key text from the first module.
         $params = array(
             'courseid' => $record->courseid,
-            'module'   => $record->module1
+            'module' => $record->module1
         );
         $key = $DB->get_record('block_lord_modules', $params);
         $kparas = $DB->get_records('block_lord_paragraphs', $params);
@@ -930,13 +950,13 @@ class compare_learning_objects extends \core\task\scheduled_task {
         list($similarity, $matrix) = $this->call_bridge($keyname, $targetname);
 
         $params = array(
-            'id'       => $record->id,
+            'id' => $record->id,
             'courseid' => $record->courseid,
-            'module1'  => $record->module1,
-            'module2'  => $record->module2,
+            'module1' => $record->module1,
+            'module2' => $record->module2,
             'compared' => 'name',
-            'value'    => $similarity,
-            'matrix'   => $matrix
+            'value' => $similarity,
+            'matrix' => $matrix
         );
         $DB->update_record('block_lord_comparisons', $params);
 
@@ -964,11 +984,11 @@ class compare_learning_objects extends \core\task\scheduled_task {
 
                 $params[] = (object) array(
                     'courseid' => $record->courseid,
-                    'module1'  => $record->module1,
-                    'module2'  => $record->module2,
+                    'module1' => $record->module1,
+                    'module2' => $record->module2,
                     'compared' => 'intro'.$ks.'x'.$ts,
-                    'value'    => $similarity,
-                    'matrix'   => $matrix
+                    'value' => $similarity,
+                    'matrix' => $matrix
                 );
             }
         }
@@ -1011,11 +1031,11 @@ class compare_learning_objects extends \core\task\scheduled_task {
 
                         $params[] = (object) array(
                             'courseid' => $record->courseid,
-                            'module1'  => $record->module1,
-                            'module2'  => $record->module2,
+                            'module1' => $record->module1,
+                            'module2' => $record->module2,
                             'compared' => 'P'.$p1.'S'.$s1.'P'.$p2.'S'.$s2,
-                            'value'    => $similarity,
-                            'matrix'   => $matrix
+                            'value' => $similarity,
+                            'matrix' => $matrix
                         );
                     }
                 }
@@ -1033,7 +1053,7 @@ class compare_learning_objects extends \core\task\scheduled_task {
      * @param string $target The target text.
      * @return array
      */
-    private function call_bridge(&$key, &$target) {
+    private function call_bridge($key, $target) {
         global $DB, $CFG;
 
         // Sanity check. Return non-zero value to avoid persistent errors.
@@ -1046,11 +1066,13 @@ class compare_learning_objects extends \core\task\scheduled_task {
         // The outgoing JSON data.
         $json = array(
             'language' => $this->language,
-            'value'  => 1,
-            'key'    => $this->restrict_sentence_length($key),
+            'value' => 1,
+            'key' => $this->restrict_sentence_length($key),
             'target' => $this->restrict_sentence_length($target),
-            'method' => 'old',
-            'email'  => 'lord@vipresearch.ca',
+            'method' => $this->maxbpm ? 'bpm' : 'old',
+            'ngram_service' => $this->ngrampos ? 'ngrampos' : '',
+            'canonical' => $this->canonical ? 'canonical' : '',
+            'email' => 'lord@vipresearch.ca',
         );
         $json = json_encode($json);
 
@@ -1171,10 +1193,10 @@ class compare_learning_objects extends \core\task\scheduled_task {
             $fileinfo = array(
                 'contextid' => $context->id,
                 'component' => 'mod_url',
-                'filearea'  => 'lord',
-                'itemid'    => 0,
-                'filepath'  => '/',
-                'filename'  => $fname == '' ? 'file.ext' : $fname);
+                'filearea' => 'lord',
+                'itemid' => 0,
+                'filepath' => '/',
+                'filename' => $fname == '' ? 'file.ext' : $fname);
 
             if ($fs->file_exists($context->id, 'mod_url', 'lord', 0, '/', $fileinfo['filename'])) {
                 $file = $fs->get_file($context->id, 'mod_url', 'lord', 0, '/', $fileinfo['filename']);
@@ -1842,6 +1864,9 @@ class compare_learning_objects extends \core\task\scheduled_task {
                         'status' => 0,
                         'language' => $this->language
                     );
+
+                } else if ($sim[0] == -1) { // Connection timeout, don't know.
+                    $cleaned .= $word . ' ';
 
                 } else { // Not in Wordnet.
                     $this->dictionary[$word] = 1;

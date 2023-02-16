@@ -49,29 +49,29 @@ foreach ($nodes->nodes as $key => $value) {
 
     $data[] = (object) array(
         'courseid' => $courseid,
-        'changed'  => $coordsid,
+        'changed' => $coordsid,
         'moduleid' => $key,
-        'xcoord'   => $value->xcoord,
-        'ycoord'   => $value->ycoord,
-        'visible'  => 1
+        'xcoord' => $value->xcoord,
+        'ycoord' => $value->ycoord,
+        'visible' => 1
     );
     // Copy nodes for use in centroid calculations.
     $nds[$key] = array(
-        'xcoord'   => $value->xcoord,
-        'ycoord'   => $value->ycoord,
-        'visible'  => 1
+        'xcoord' => $value->xcoord,
+        'ycoord' => $value->ycoord,
+        'visible' => 1
     );
 }
 // Store new node coordinates.
 $DB->insert_records('block_lord_coords', $data);
 
 $DB->insert_record('block_lord_scales', (object) array(
-    'courseid'  => $courseid,
-    'coordsid'  => $coordsid,
-    'scale'     => $nodes->scale,
-    'iscustom'  => $nodes->iscustom,
-    'mindist'   => $nodes->mindist,
-    'maxdist'   => $nodes->maxdist,
+    'courseid' => $courseid,
+    'coordsid' => $coordsid,
+    'scale' => $nodes->scale,
+    'iscustom' => $nodes->iscustom,
+    'mindist' => $nodes->mindist,
+    'maxdist' => $nodes->maxdist,
     'distscale' => $nodes->distscale,
 ));
 
@@ -90,9 +90,9 @@ foreach ($nodes->links as $link) {
     $data[] = (object) array(
         'courseid' => $courseid,
         'coordsid' => $coordsid,
-        'module1'  => $m1,
-        'module2'  => $m2,
-        'weight'   => $link->weight
+        'module1' => $m1,
+        'module2' => $m2,
+        'weight' => $link->weight
     );
 }
 // Store new links.

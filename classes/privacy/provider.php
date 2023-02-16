@@ -57,11 +57,11 @@ class provider implements
             'block_lord_comparisons',
             [
                 'courseid' => 'privacy:metadata:block_lord:courseid',
-                'module1'  => 'privacy:metadata:block_lord:module1',
-                'module2'  => 'privacy:metadata:block_lord:module2',
+                'module1' => 'privacy:metadata:block_lord:module1',
+                'module2' => 'privacy:metadata:block_lord:module2',
                 'compared' => 'privacy:metadata:block_lord:compared',
-                'value'    => 'privacy:metadata:block_lord:value',
-                'matrix'   => 'privacy:metadata:block_lord:matrix',
+                'value' => 'privacy:metadata:block_lord:value',
+                'matrix' => 'privacy:metadata:block_lord:matrix',
             ],
             'privacy:metadata:block_lord_comparisons'
         );
@@ -70,9 +70,9 @@ class provider implements
             'block_lord_modules',
             [
                 'courseid' => 'privacy:metadata:block_lord:courseid',
-                'module'   => 'privacy:metadata:block_lord:module',
-                'name'     => 'privacy:metadata:block_lord:name',
-                'intro'    => 'privacy:metadata:block_lord:intro',
+                'module' => 'privacy:metadata:block_lord:module',
+                'name' => 'privacy:metadata:block_lord:name',
+                'intro' => 'privacy:metadata:block_lord:intro',
             ],
             'privacy:metadata:block_lord_modules'
         );
@@ -80,14 +80,18 @@ class provider implements
         $collection->add_database_table(
             'block_lord_max_words',
             [
-                'courseid'       => 'privacy:metadata:block_lord:courseid',
-                'dodiscovery'    => 'privacy:metadata:block_lord:dodiscovery',
-                'maxlength'      => 'privacy:metadata:block_lord:maxlength',
-                'maxsentence'    => 'privacy:metadata:block_lord:maxsentence',
-                'maxparas'       => 'privacy:metadata:block_lord:maxparas',
-                'nameweight'     => 'privacy:metadata:block_lord:nameweight',
-                'introweight'    => 'privacy:metadata:block_lord:introweight',
+                'courseid' => 'privacy:metadata:block_lord:courseid',
+                'dodiscovery' => 'privacy:metadata:block_lord:dodiscovery',
+                'maxlength' => 'privacy:metadata:block_lord:maxlength',
+                'maxsentence' => 'privacy:metadata:block_lord:maxsentence',
+                'maxparas' => 'privacy:metadata:block_lord:maxparas',
+                'nameweight' => 'privacy:metadata:block_lord:nameweight',
+                'introweight' => 'privacy:metadata:block_lord:introweight',
                 'sentenceweight' => 'privacy:metadata:block_lord:sentenceweight',
+                'language' => 'privacy:metadata:block_lord:language',
+                'maxbpm' => 'privacy:metadata:block_lord:maxbpm',
+                'ngrampos' => 'privacy:metadata:block_lord:ngrampos',
+                'canonical' => 'privacy:metadata:block_lord:canonical',
             ],
             'privacy:metadata:block_lord_max_words'
         );
@@ -96,11 +100,11 @@ class provider implements
             'block_lord_coords',
             [
                 'courseid' => 'privacy:metadata:block_lord:courseid',
-                'changed'  => 'privacy:metadata:block_lord:changed',
+                'changed' => 'privacy:metadata:block_lord:changed',
                 'moduleid' => 'privacy:metadata:block_lord:moduleid',
-                'xcoord'   => 'privacy:metadata:block_lord:xcoord',
-                'ycoord'   => 'privacy:metadata:block_lord:ycoord',
-                'visible'  => 'privacy:metadata:block_lord:visible',
+                'xcoord' => 'privacy:metadata:block_lord:xcoord',
+                'ycoord' => 'privacy:metadata:block_lord:ycoord',
+                'visible' => 'privacy:metadata:block_lord:visible',
             ],
             'privacy:metadata:block_lord_coords'
         );
@@ -108,12 +112,12 @@ class provider implements
         $collection->add_database_table(
             'block_lord_scales',
             [
-                'courseid'  => 'privacy:metadata:block_lord:courseid',
-                'coordsid'  => 'privacy:metadata:block_lord:coordsid',
-                'scale'     => 'privacy:metadata:block_lord:scale',
-                'iscustom'  => 'privacy:metadata:block_lord:iscustom',
-                'mindist'   => 'privacy:metadata:block_lord:mindist',
-                'maxdist'   => 'privacy:metadata:block_lord:maxdist',
+                'courseid' => 'privacy:metadata:block_lord:courseid',
+                'coordsid' => 'privacy:metadata:block_lord:coordsid',
+                'scale' => 'privacy:metadata:block_lord:scale',
+                'iscustom' => 'privacy:metadata:block_lord:iscustom',
+                'mindist' => 'privacy:metadata:block_lord:mindist',
+                'maxdist' => 'privacy:metadata:block_lord:maxdist',
                 'distscale' => 'privacy:metadata:block_lord:distscale',
             ],
             'privacy:metadata:block_lord_scales'
@@ -122,10 +126,10 @@ class provider implements
         $collection->add_database_table(
             'block_lord_paragraphs',
             [
-                'courseid'  => 'privacy:metadata:block_lord:courseid',
-                'module'    => 'privacy:metadata:block_lord:module',
+                'courseid' => 'privacy:metadata:block_lord:courseid',
+                'module' => 'privacy:metadata:block_lord:module',
                 'paragraph' => 'privacy:metadata:block_lord:paragraph',
-                'content'   => 'privacy:metadata:block_lord:content',
+                'content' => 'privacy:metadata:block_lord:content',
             ],
             'privacy:metadata:block_lord_paragraphs'
         );
@@ -133,7 +137,7 @@ class provider implements
         $collection->add_database_table(
             'block_lord_dictionary',
             [
-                'word'   => 'privacy:metadata:block_lord:word',
+                'word' => 'privacy:metadata:block_lord:word',
                 'status' => 'privacy:metadata:block_lord:status',
             ],
             'privacy:metadata:block_lord_dictionary'
@@ -144,9 +148,9 @@ class provider implements
             [
                 'courseid' => 'privacy:metadata:block_lord:courseid',
                 'coordsid' => 'privacy:metadata:block_lord:coordsid',
-                'module1'  => 'privacy:metadata:block_lord:module1',
-                'module2'  => 'privacy:metadata:block_lord:module2',
-                'weight'   => 'privacy:metadata:block_lord:weight',
+                'module1' => 'privacy:metadata:block_lord:module1',
+                'module2' => 'privacy:metadata:block_lord:module2',
+                'weight' => 'privacy:metadata:block_lord:weight',
             ],
             'privacy:metadata:block_lord_links'
         );
@@ -173,7 +177,7 @@ class provider implements
 
         $params = [
             'context' => CONTEXT_COURSE,
-            'userid'  => $userid
+            'userid' => $userid
         ];
 
         $contextlist->add_from_sql($sql, $params);

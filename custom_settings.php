@@ -78,6 +78,9 @@ if ($mform->is_cancelled()) {
         'introweight' => floatval($fromform->intro_weight),
         'sentenceweight' => floatval($fromform->sentence_weight),
         'language' => $fromform->language,
+        'maxbpm' => $fromform->maxbpm == 'yes' ? 1 : 0,
+        'ngram_pos' => $fromform->ngrampos == 'yes' ? 1 : 0,
+        'canonical' => $fromform->canonical == 'yes' ? 1 : 0
     );
 
     // Insert/update custom settings.

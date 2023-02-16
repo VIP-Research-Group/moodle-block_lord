@@ -281,5 +281,37 @@ function xmldb_block_lord_upgrade($oldversion) {
         upgrade_block_savepoint(true, 2022051900, 'lord');
     }
 
+    if ($oldversion < 2023021600) {
+
+        // Define field maxbpm to be added to block_lord_max_words.
+        $table = new xmldb_table('block_lord_max_words');
+        $field = new xmldb_field('maxbpm', XMLDB_TYPE_INTEGER, '1', null, null, null, '0', 'language');
+
+        // Conditionally launch add field maxbpm.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Define field ngram_pos to be added to block_lord_max_words.
+        $table = new xmldb_table('block_lord_max_words');
+        $field = new xmldb_field('ngram_pos', XMLDB_TYPE_INTEGER, '1', null, null, null, '0', 'maxbpm');
+
+        // Conditionally launch add field ngram_pos.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field canonical to be added to block_lord_max_words.
+        $table = new xmldb_table('block_lord_max_words');
+        $field = new xmldb_field('canonical', XMLDB_TYPE_INTEGER, '1', null, null, null, '0', 'ngram_pos');
+
+        // Conditionally launch add field canonical.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Lord savepoint reached.
+        upgrade_block_savepoint(true, 2023021600, 'lord');
+    }
+
     return true;
 }

@@ -49,11 +49,11 @@ function block_lord_get_course_info(&$course) {
             }
 
             $courseinfo[] = array(
-                'id'     => $cmid,
+                'id' => $cmid,
                 'entype' => $cm->modname,
-                'type'   => get_string('modulename', $cm->modname),
-                'name'   => $cm->name,
-                'sect'   => $sectionnum
+                'type' => get_string('modulename', $cm->modname),
+                'name' => $cm->name,
+                'sect' => $sectionnum
             );
         }
     }
@@ -143,10 +143,10 @@ function block_lord_get_progress(&$course) {
     $total = count($comparisons);
     $percent = $total == 0 ? 0 : round($calculated / $total * 100, 2);
     $progress = array(
-        'total'      => $total,
+        'total' => $total,
         'calculated' => $calculated,
-        'percent'    => $percent,
-        'errors'     => $errors
+        'percent' => $percent,
+        'errors' => $errors
     );
 
     return $progress;
@@ -179,9 +179,9 @@ function block_lord_get_contents(&$course) {
         }
 
         $names[$record->module] = array(
-            'name'   => $record->name,
-            'intro'  => $record->intro,
-            'cname'  => block_lord_clean_sentence($record->name, $dictionary),
+            'name' => $record->name,
+            'intro' => $record->intro,
+            'cname' => block_lord_clean_sentence($record->name, $dictionary),
             'cintro' => $intros
         );
     }
@@ -384,8 +384,8 @@ function block_lord_get_node_coords(&$course) {
     $systemnodes = [];
     foreach ($systemcoords as $sc) {
         $systemnodes[$sc->moduleid] = array(
-            'xcoord'  => $sc->xcoord,
-            'ycoord'  => $sc->ycoord,
+            'xcoord' => $sc->xcoord,
+            'ycoord' => $sc->ycoord,
             'visible' => $sc->visible
         );
     }
@@ -409,8 +409,8 @@ function block_lord_get_node_coords(&$course) {
     $usernodes = [];
     foreach ($usercoords as $uc) {
         $usernodes[$uc->moduleid] = array(
-            'xcoord'  => $uc->xcoord,
-            'ycoord'  => $uc->ycoord,
+            'xcoord' => $uc->xcoord,
+            'ycoord' => $uc->ycoord,
             'visible' => $uc->visible
         );
     }
@@ -458,7 +458,10 @@ class block_lord_reset_form extends moodleform {
             $nameweight = $record->nameweight;
             $introweight = $record->introweight;
             $sentenceweight = $record->sentenceweight;
-            $language = isset($record->language) ? $record->language : 'en';
+            $language = $record->language;
+            $maxbpm = $record->maxbpm ? 'yes' : 'no';
+            $ngrampos = $record->ngram_pos ? 'yes' : 'no';
+            $canonical = $record->canonical ? 'yes' : 'no';
 
         } else { // Defaults.
             $started = 0;
@@ -469,6 +472,9 @@ class block_lord_reset_form extends moodleform {
             $introweight = 1.0;
             $sentenceweight = 1.0;
             $language = 'en';
+            $maxbpm = 'no';
+            $ngrampos = 'no';
+            $canonical = 'no';
         }
 
         $mform = &$this->_form;
@@ -546,6 +552,18 @@ class block_lord_reset_form extends moodleform {
         }
         $mform->addElement('select', 'language', get_string('languages', 'block_lord'), $langs);
         $mform->getElement('language')->setSelected($language);
+
+        // Yes/No select option for max BPM.
+        $mform->addElement('select', 'maxbpm', get_string('maxbpm', 'block_lord'), $options);
+        $mform->getElement('maxbpm')->setSelected($maxbpm);
+
+        // Yes/No select option for Ngram-POS.
+        $mform->addElement('select', 'ngrampos', get_string('ngrampos', 'block_lord'), $options);
+        $mform->getElement('ngrampos')->setSelected($ngrampos);
+
+        // Yes/No select option for canonical.
+        $mform->addElement('select', 'canonical', get_string('canonical', 'block_lord'), $options);
+        $mform->getElement('canonical')->setSelected($canonical);
 
         $mform->addElement('header', 'config_header', get_string('resetheader2', 'block_lord'));
 
