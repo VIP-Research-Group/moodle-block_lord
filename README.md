@@ -67,10 +67,11 @@ are also options to control the maximum number of sentences and paragraphs
 compared between learning objects and the maximum number of words to allow in a
 sentence. There are also adjustable weights for use in the final similarity value
 calculation, where the names, the introductions, and the rest of the module
-content can be weighted differently. There are 3 reset options, one to reset just
-the comparison errors, one to reset all comparisons, and the other to reset both
-comparisons and module content. Finally, there is an option to add or remove stop
-words from the dictionary.
+content can be weighted differently. There are 4 options to configure the use of
+the word and sentence similarity calculator. There are 3 reset options, one to
+reset just the comparison errors, one to reset all comparisons, and the other to
+reset both comparisons and module content. Finally, there is an option to add or
+remove stop words from the dictionary.
 
 
 ## License ##

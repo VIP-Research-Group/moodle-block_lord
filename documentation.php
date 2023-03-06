@@ -95,6 +95,8 @@ echo html_writer::div(get_string('docs:settings', 'block_lord'), 'bigger', array
 echo html_writer::empty_tag('br');
 echo html_writer::div(get_string('docs:settings:desc1', 'block_lord'));
 echo html_writer::empty_tag('br');
+echo html_writer::div(get_string('docs:settings:desc6', 'block_lord'));
+echo html_writer::empty_tag('br');
 echo html_writer::div(get_string('docs:settings:desc2', 'block_lord'));
 echo html_writer::empty_tag('br');
 echo html_writer::div(get_string('docs:settings:desc3', 'block_lord'));
